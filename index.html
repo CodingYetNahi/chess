@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta
+        name="description"
+        content="A polished, fully playable browser chess game with complete chess rules, legal move validation, castling, en passant, promotion, undo and chess clocks."
+    >
+
+    <meta name="theme-color" content="#111827">
+
+    <meta property="og:title" content="Chess — Play Chess in Your Browser">
+    <meta
+        property="og:description"
+        content="A complete client-side chess game with legal move validation, clocks, undo, promotion, castling and en passant."
+    >
+    <meta property="og:type" content="website">
+
+    <title>Chess — Play Chess in Your Browser</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main class="app-shell">
+        <header class="game-header">
+            <div>
+                <p class="eyebrow">CLASSIC CHESS</p>
+                <h1>Chess</h1>
+                <p class="subtitle">Two players · One board</p>
+            </div>
+
+            <div class="header-actions">
+                <button
+                    id="newGameButton"
+                    class="button button-primary"
+                    type="button"
+                    aria-label="Start a new chess game"
+                >
+                    New Game
+                </button>
+            </div>
+        </header>
+
+        <section class="game-layout" aria-label="Chess game">
+            <div class="board-column">
+                <section class="player-panel black-panel" aria-label="Black player">
+                    <div class="player-info">
+                        <span class="player-piece black-piece" aria-hidden="true">♚</span>
+
+                        <div>
+                            <h2>Black</h2>
+                            <p id="blackPlayerStatus">Waiting</p>
+                        </div>
+                    </div>
+
+                    <div
+                        id="blackClock"
+                        class="clock"
+                        aria-label="Black clock"
+                    >
+                        10:00
+                    </div>
+                </section>
+
+                <div class="board-wrapper">
+                    <div class="board-frame">
+                        <div
+                            id="chessBoard"
+                            class="chess-board"
+                            role="grid"
+                            aria-label="Chess board"
+                        ></div>
+                    </div>
+                </div>
+
+                <section class="player-panel white-panel" aria-label="White player">
+                    <div class="player-info">
+                        <span class="player-piece white-piece" aria-hidden="true">♔</span>
+
+                        <div>
+                            <h2>White</h2>
+                            <p id="whitePlayerStatus">Your turn</p>
+                        </div>
+                    </div>
+
+                    <div
+                        id="whiteClock"
+                        class="clock active-clock"
+                        aria-label="White clock"
+                    >
+                        10:00
+                    </div>
+                </section>
+
+                <section
+                    id="gameStatus"
+                    class="status-card"
+                    aria-live="polite"
+                    aria-atomic="true"
+                >
+                    <span class="status-dot" aria-hidden="true"></span>
+                    <span id="statusText">White to move</span>
+                </section>
+            </div>
+
+            <aside class="side-panel" aria-label="Game controls and move history">
+                <section class="control-card">
+                    <div class="card-heading">
+                        <div>
+                            <p class="eyebrow">GAME</p>
+                            <h2>Controls</h2>
+                        </div>
+                    </div>
+
+                    <div class="control-buttons">
+                        <button
+                            id="undoButton"
+                            class="button button-secondary"
+                            type="button"
+                            disabled
+                            aria-label="Undo the last move"
+                        >
+                            <span aria-hidden="true">↶</span>
+                            Undo Move
+                        </button>
+
+                        <button
+                            id="newGameButtonSecondary"
+                            class="button button-secondary"
+                            type="button"
+                            aria-label="Start a new chess game"
+                        >
+                            <span aria-hidden="true">↻</span>
+                            New Game
+                        </button>
+                    </div>
+                </section>
+
+                <section class="history-card">
+                    <div class="card-heading history-heading">
+                        <div>
+                            <p class="eyebrow">GAME RECORD</p>
+                            <h2>Move History</h2>
+                        </div>
+
+                        <span id="moveCount" class="move-count">0</span>
+                    </div>
+
+                    <div
+                        id="moveHistory"
+                        class="move-history"
+                        aria-label="Chess move history"
+                        aria-live="polite"
+                    >
+                        <div class="empty-history">
+                            <span class="empty-history-icon" aria-hidden="true">♟</span>
+                            <p>Moves will appear here.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="captured-card">
+                    <div class="card-heading">
+                        <div>
+                            <p class="eyebrow">CAPTURED</p>
+                            <h2>Pieces</h2>
+                        </div>
+                    </div>
+
+                    <div class="captured-row">
+                        <div class="captured-side">
+                            <span class="captured-label">White</span>
+                            <span id="whiteCaptured" class="captured-pieces">—</span>
+                        </div>
+
+                        <div class="captured-side">
+                            <span class="captured-label">Black</span>
+                            <span id="blackCaptured" class="captured-pieces">—</span>
+                        </div>
+                    </div>
+                </section>
+
+                <p class="game-note">
+                    Tap a piece to select it, then tap a highlighted square to move.
+                    All moves are validated by the chess rules engine.
+                </p>
+            </aside>
+        </section>
+
+        <footer class="site-footer">
+            <span>Client-side chess</span>
+            <span aria-hidden="true">•</span>
+            <span>No account required</span>
+        </footer>
+    </main>
+
+    <div
+        id="promotionModal"
+        class="modal-backdrop hidden"
+        role="presentation"
+    >
+        <section
+            class="promotion-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="promotionTitle"
+        >
+            <p class="eyebrow">PAWN PROMOTION</p>
+            <h2 id="promotionTitle">Choose a piece</h2>
+            <p class="promotion-description">
+                Select the piece your pawn should become.
+            </p>
+
+            <div
+                id="promotionChoices"
+                class="promotion-choices"
+                role="group"
+                aria-label="Promotion choices"
+            ></div>
+        </section>
+    </div>
+
+    <div
+        id="newGameModal"
+        class="modal-backdrop hidden"
+        role="presentation"
+    >
+        <section
+            class="confirmation-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="newGameTitle"
+        >
+            <p class="eyebrow">NEW GAME</p>
+            <h2 id="newGameTitle">Start a new game?</h2>
+            <p>
+                The current game, move history and clocks will be reset.
+            </p>
+
+            <div class="modal-actions">
+                <button
+                    id="cancelNewGame"
+                    class="button button-secondary"
+                    type="button"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    id="confirmNewGame"
+                    class="button button-danger"
+                    type="button"
+                >
+                    New Game
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
